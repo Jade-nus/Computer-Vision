@@ -1,4 +1,4 @@
-# 🚁 DroneVisionPro - Hệ thống Xử lý Ảnh Chuyên nghiệp cho Drone
+# DroneVisionPro - Hệ thống Xử lý Ảnh cho Drone
 
 **DroneVisionPro** là hệ thống xử lý ảnh thời gian thực được thiết kế riêng cho ứng dụng drone. Dự án hỗ trợ cả 2 ngôn ngữ **Python** (dành cho việc chạy thử nghiệm siêu tốc) và **C++** (dành cho nhúng vào phần cứng thực tế với hiệu năng cao nhất).
 
