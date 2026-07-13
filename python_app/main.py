@@ -28,6 +28,13 @@ def main():
         print("[ERROR] Khong the mo camera!")
         return
         
+    # Khoi tao thong so Camera gia lap de do khoang cach bang met (m)
+    cam_w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    cam_h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    camera_matrix = np.array([[cam_w, 0, cam_w/2], [0, cam_w, cam_h/2], [0, 0, 1]], dtype=np.float32)
+    dist_coeffs = np.zeros((4,1))
+    marker_length_m = 0.20 # Kich thuoc thuc te cua bai dap (0.2m = 20cm)
+        
     # Khoi tao YOLOv4-tiny
     print("[INFO] Tai mo hinh YOLO...")
     net = cv2.dnn.readNetFromDarknet("../assets/models/yolov4-tiny.cfg", "../assets/models/yolov4-tiny.weights")
@@ -67,8 +74,13 @@ def main():
         detected_count = 0
         h, w = frame.shape[:2]
         
-        # 1. Phat hien ArUco
-        corners, ids, rejected = detector.detectMarkers(frame)
+        # Tien xu ly anh (Tang tuong phan) de chong loa khi quet man hinh dien thoai
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+        enhanced_gray = clahe.apply(gray_frame)
+        
+        # 1. Phat hien ArUco (Su dung anh da chong loa)
+        corners, ids, rejected = detector.detectMarkers(enhanced_gray)
         if ids is not None:
             aruco.drawDetectedMarkers(frame, corners, ids)
             detected_count += len(ids)
@@ -76,12 +88,22 @@ def main():
                 # Tinh tam marker
                 c = corners[i][0]
                 cx, cy = int(c[:, 0].mean()), int(c[:, 1].mean())
+                
+                # Tinh toan khoang cach tu Camera toi vat the bang met (m)
+                obj_points = np.array([[-marker_length_m/2, marker_length_m/2, 0],
+                                       [marker_length_m/2, marker_length_m/2, 0],
+                                       [marker_length_m/2, -marker_length_m/2, 0],
+                                       [-marker_length_m/2, -marker_length_m/2, 0]], dtype=np.float32)
+                _, rvec, tvec = cv2.solvePnP(obj_points, c, camera_matrix, dist_coeffs)
+                distance_m = np.linalg.norm(tvec)
+                
                 if ids[i][0] == 0:
-                    cv2.putText(frame, "LANDING PAD", (cx-50, cy-20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                    cv2.putText(frame, f"LANDING PAD - Cach: {distance_m:.2f} m", (cx-60, cy-20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                     cv2.circle(frame, (cx, cy), 15, (0, 255, 0), 2)
                     
         # 2. Phat hien QR Code (Nang cap len PyZbar, doc cuc nhay va xa)
-        decoded_objects = decode(frame)
+        # Dung luon anh xam da tang tuong phan (enhanced_gray) de QR cung nhay hon
+        decoded_objects = decode(enhanced_gray)
         for obj in decoded_objects:
             info = obj.data.decode('utf-8')
             pts = np.array([obj.polygon], np.int32)
