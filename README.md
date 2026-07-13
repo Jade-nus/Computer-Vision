@@ -40,7 +40,6 @@ python main.py
 
 **Thao tác Camera:**
 - Phím `q`: Thoát Camera an toàn.
-- Hoặc bấm dấu `X` trên cửa sổ Camera.
 
 ---
 
