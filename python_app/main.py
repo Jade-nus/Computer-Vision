@@ -4,6 +4,24 @@ import numpy as np
 import time
 from pyzbar.pyzbar import decode
 
+def draw_cube(frame, camera_matrix, dist_coeffs, rvec, tvec, marker_size):
+    cube_points = np.array([
+        [-marker_size/2, -marker_size/2, 0],
+        [marker_size/2, -marker_size/2, 0],
+        [marker_size/2, marker_size/2, 0],
+        [-marker_size/2, marker_size/2, 0],
+        [-marker_size/2, -marker_size/2, -marker_size],
+        [marker_size/2, -marker_size/2, -marker_size],
+        [marker_size/2, marker_size/2, -marker_size],
+        [-marker_size/2, marker_size/2, -marker_size]
+    ], dtype=np.float32)
+    projected_points, _ = cv2.projectPoints(cube_points, rvec, tvec, camera_matrix, dist_coeffs)
+    projected_points = projected_points.reshape(-1, 2).astype(int)
+    cv2.drawContours(frame, [projected_points[:4]], -1, (0, 255, 0), 2)
+    cv2.drawContours(frame, [projected_points[4:8]], -1, (0, 0, 255), 2)
+    for j in range(4):
+        cv2.line(frame, tuple(projected_points[j]), tuple(projected_points[j+4]), (255, 0, 0), 2)
+
 def draw_hud(frame, fps, altitude, detected_count):
     h, w = frame.shape[:2]
     # Vẽ Crosshair (Tâm ngắm)
@@ -100,6 +118,8 @@ def main():
                 if ids[i][0] == 0:
                     cv2.putText(frame, f"LANDING PAD - Cach: {distance_m:.2f} m", (cx-60, cy-20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                     cv2.circle(frame, (cx, cy), 15, (0, 255, 0), 2)
+                    cv2.drawFrameAxes(frame, camera_matrix, dist_coeffs, rvec, tvec, marker_length_m)
+                    draw_cube(frame, camera_matrix, dist_coeffs, rvec, tvec, marker_length_m)
                     
         # 2. Phat hien QR Code (Nang cap len PyZbar, doc cuc nhay va xa)
         # Dung luon anh xam da tang tuong phan (enhanced_gray) de QR cung nhay hon

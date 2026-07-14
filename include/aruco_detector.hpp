@@ -277,6 +277,15 @@ private: // Phần private - các thuộc tính và phương thức chỉ truy c
      * @details Camera chưa hiệu chuẩn sẽ có ma trận đơn vị, không thể ước lượng pose chính xác.
      */
     bool isCameraCalibrated() const; // Kiểm tra hiệu chuẩn camera, const vì chỉ đọc
+
+    /**
+     * @brief Vẽ hình khối lập phương ảo 3D đè lên mặt phẳng của marker
+     * @param frame Khung hình đầu ra
+     * @param rvec Rotation vector
+     * @param tvec Translation vector
+     * @param marker_length Kích thước thật của marker (mét)
+     */
+    void drawCube(cv::Mat& frame, const cv::Vec3d& rvec, const cv::Vec3d& tvec, float marker_length) const;
 };
 
 } // namespace drone_vision - Kết thúc namespace drone_vision

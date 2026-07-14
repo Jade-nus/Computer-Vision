@@ -420,6 +420,10 @@ void ArucoDetector::drawDetections(cv::Mat& frame) { // Vẽ kết quả phát h
                     cv::Scalar(0, 255, 0),                         // Màu xanh lá
                     3                                              // Độ dày đường viền = 3 pixel
                 ); // Kết thúc vẽ hình tròn bãi đáp
+
+                // VẼ KHỐI LẬP PHƯƠNG 3D (AR CUBE)
+                // Giả định marker length của bãi đáp là 0.2m giống với Python
+                drawCube(frame, marker.rvec, marker.tvec, 0.20f);
             } // Kết thúc kiểm tra bãi đáp
         } // Kết thúc kiểm tra corners không rỗng
     } // Kết thúc vòng lặp duyệt marker
@@ -572,5 +576,50 @@ bool ArucoDetector::isCameraCalibrated() const { // Kiểm tra camera đã hiệ
     // Trả về true nếu sự khác biệt > ngưỡng nhỏ (1e-6), tức là đã hiệu chuẩn
     return diff > 1e-6; // So sánh với epsilon rất nhỏ để tránh sai số số học floating-point
 } // Kết thúc isCameraCalibrated
+
+// ============================================================================
+// PHƯƠNG THỨC PRIVATE - VẼ KHỐI LẬP PHƯƠNG 3D
+// ============================================================================
+
+void ArucoDetector::drawCube(cv::Mat& frame, const cv::Vec3d& rvec, const cv::Vec3d& tvec, float marker_length) const {
+    // Định nghĩa các điểm của hình khối
+    float l = marker_length / 2.0f;
+    std::vector<cv::Point3f> cube_points = {
+        cv::Point3f(-l, -l, 0),
+        cv::Point3f(l, -l, 0),
+        cv::Point3f(l, l, 0),
+        cv::Point3f(-l, l, 0),
+        cv::Point3f(-l, -l, -marker_length),
+        cv::Point3f(l, -l, -marker_length),
+        cv::Point3f(l, l, -marker_length),
+        cv::Point3f(-l, l, -marker_length)
+    };
+
+    std::vector<cv::Point2f> projected_points;
+    cv::projectPoints(cube_points, rvec, tvec, camera_matrix_, dist_coeffs_, projected_points);
+
+    // Ép kiểu sang int để vẽ
+    std::vector<cv::Point> pts(8);
+    for (int i = 0; i < 8; ++i) {
+        pts[i] = cv::Point(static_cast<int>(projected_points[i].x), static_cast<int>(projected_points[i].y));
+    }
+
+    // Vẽ đáy hình khối (xanh lá)
+    std::vector<cv::Point> bottom = { pts[0], pts[1], pts[2], pts[3] };
+    const cv::Point* bottom_pts[1] = { &bottom[0] };
+    int n_bottom[] = { 4 };
+    cv::polylines(frame, bottom_pts, n_bottom, 1, true, cv::Scalar(0, 255, 0), 2);
+
+    // Vẽ đỉnh hình khối (đỏ)
+    std::vector<cv::Point> top = { pts[4], pts[5], pts[6], pts[7] };
+    const cv::Point* top_pts[1] = { &top[0] };
+    int n_top[] = { 4 };
+    cv::polylines(frame, top_pts, n_top, 1, true, cv::Scalar(0, 0, 255), 2);
+
+    // Vẽ các cạnh dọc (xanh dương)
+    for (int j = 0; j < 4; ++j) {
+        cv::line(frame, pts[j], pts[j + 4], cv::Scalar(255, 0, 0), 2);
+    }
+}
 
 } // namespace drone_vision - Kết thúc namespace drone_vision
