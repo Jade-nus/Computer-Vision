@@ -103,4 +103,4 @@ DroneVisionPro/
 ```
 
 ---
-*Dự án được phát triển và tối ưu hóa cho hệ thống điều khiển Drone thời gian thực!*
+*Dự án được phát triển và tối ưu hóa cho hệ thống điều khiển Drone thời gian thực*
