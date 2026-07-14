@@ -10,7 +10,7 @@ Hệ thống tích hợp nhiều module chuyên dụng cho các tác vụ thị 
 
 ---
 
-## 📦 TÀI NGUYÊN BẮT BUỘC (Dành cho cả C++ và Python)
+## TÀI NGUYÊN BẮT BUỘC (Dành cho cả C++ và Python)
 
 Để tính năng Trí tuệ nhân tạo (YOLO) hoạt động, bạn **bắt buộc** phải có 3 file mô hình sau trong thư mục `assets/models/` (Hiện tại đã được tải sẵn):
 1. `yolov4-tiny.cfg` (File cấu trúc mạng nơ-ron)
@@ -19,7 +19,7 @@ Hệ thống tích hợp nhiều module chuyên dụng cho các tác vụ thị 
 
 ---
 
-## 🚀 CÁCH 1: CHẠY BẢN PYTHON (Siêu Nhanh - Khuyên dùng)
+## CÁCH 1: CHẠY BẢN PYTHON (Siêu Nhanh - Khuyên dùng)
 
 Đây là cách tuyệt vời nhất để test thuật toán trực tiếp trên Camera Laptop mà không cần biên dịch phức tạp.
 
@@ -43,7 +43,7 @@ python main.py
 
 ---
 
-## 🛠️ CÁCH 2: BUILD BẢN C++ (Chuyên sâu - Hiệu năng cao)
+## CÁCH 2: BUILD BẢN C++ (Chuyên sâu - Hiệu năng cao)
 
 Bản C++ chứa mã nguồn khổng lồ (>1000 dòng code) được chia thành các module chuyên nghiệp. Để build được bản C++, bạn cần phải cài đặt trình biên dịch đầy đủ.
 
@@ -79,7 +79,7 @@ cmake --build . --config Release
 
 ---
 
-## 📚 CẤU TRÚC MÃ NGUỒN CỦA DỰ ÁN
+## CẤU TRÚC MÃ NGUỒN CỦA DỰ ÁN
 
 ```text
 DroneVisionPro/
