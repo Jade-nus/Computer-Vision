@@ -2,7 +2,7 @@ import cv2
 import cv2.aruco as aruco
 import numpy as np
 import time
-from pyzbar.pyzbar import decode
+from pyzbar.pyzbar import decode, ZBarSymbol
 
 def draw_cube(frame, camera_matrix, dist_coeffs, rvec, tvec, marker_size):
     cube_points = np.array([
@@ -49,8 +49,11 @@ def main():
     # Khoi tao thong so Camera gia lap de do khoang cach bang met (m)
     cam_w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     cam_h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    if cam_w == 0 or cam_h == 0:
+        cam_w, cam_h = 640, 480
     camera_matrix = np.array([[cam_w, 0, cam_w/2], [0, cam_w, cam_h/2], [0, 0, 1]], dtype=np.float32)
     dist_coeffs = np.zeros((4,1))
+    # QUAN TRONG: Ban phai do kich thuoc that cua marker va sua vao day (don vi: met). Vi du tren dien thoai thuong la 0.05
     marker_length_m = 0.20 # Kich thuoc thuc te cua bai dap (0.2m = 20cm)
         
     # Khoi tao YOLOv4-tiny
@@ -107,12 +110,13 @@ def main():
                 c = corners[i][0]
                 cx, cy = int(c[:, 0].mean()), int(c[:, 1].mean())
                 
-                # Tinh toan khoang cach tu Camera toi vat the bang met (m)
+                # Tinh toan khoang cach tu Camera toi vat thu bang met (m)
                 obj_points = np.array([[-marker_length_m/2, marker_length_m/2, 0],
                                        [marker_length_m/2, marker_length_m/2, 0],
                                        [marker_length_m/2, -marker_length_m/2, 0],
                                        [-marker_length_m/2, -marker_length_m/2, 0]], dtype=np.float32)
-                _, rvec, tvec = cv2.solvePnP(obj_points, c, camera_matrix, dist_coeffs)
+                # Them IPPE_SQUARE giup triet tieu loi nhay Pose (Jittering) kinh dien cua solvePnP
+                _, rvec, tvec = cv2.solvePnP(obj_points, c, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_IPPE_SQUARE)
                 distance_m = np.linalg.norm(tvec)
                 
                 if ids[i][0] == 0:
@@ -123,7 +127,8 @@ def main():
                     
         # 2. Phat hien QR Code (Nang cap len PyZbar, doc cuc nhay va xa)
         # Dung luon anh xam da tang tuong phan (enhanced_gray) de QR cung nhay hon
-        decoded_objects = decode(enhanced_gray)
+        # Gioi han chi tim QRCODE de sua loi Assertion warning bi tran tren console cua thu vien ZBar
+        decoded_objects = decode(enhanced_gray, symbols=[ZBarSymbol.QRCODE])
         for obj in decoded_objects:
             info = obj.data.decode('utf-8')
             pts = np.array([obj.polygon], np.int32)
